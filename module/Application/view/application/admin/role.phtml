@@ -7,7 +7,7 @@ $(document).ready(function() {
 		colModel:[
 		{name:'id', index:'id', hidden: true, width: 10, search: true, editable: false, sortable: true},
 		{name:'name', index: 'name', search: true, editable: true, sortable: true},
-		{name:'default', index: 'default', width: 20, search: false, editable: true, sortable: true},
+		{name:'default', index: 'default', width: 20, search: false, editable: true, sortable: true, edittype:"select", formatter:"select", editoptions:{value:"1:Ja;0:Nein", defaultValue:"0"}},
 		{name:'admin', index: 'admin', width: 20, search: true, editable: true, sortable: true, stype:"select", edittype:"select", formatter:"select", editoptions: {value:"1:Ja;0:Nein"}, searchoptions: { value:":Alle;1:Ja;0:Nein" }},
 		],
 		rowNum:10,
@@ -22,10 +22,18 @@ $(document).ready(function() {
 		editurl: '/index.php/application/admin/updateRole',
 		autowidth: true	,
 		height: '100%',
-		afterSaveCell: function() {$("#role_table").trigger("reloadGrid");},
+		afterSaveCell: function() {$("#role_table").trigger("reloadGrid"); return [true,"",""];},
 	});
 	$("#role_table").filterToolbar();
-	$("#role_table").jqGrid('navGrid','#role_pager',{edit:false,add:false,del:false,search:false});
+	$("#role_table").jqGrid().navGrid(
+			'#role_pager',
+			{edit:false,add:true,del:true,search:false},//options
+			{},//edit
+			{closeAfterAdd: true},//add
+			{},//delete
+			{},//search
+			{}//view
+	);
 });
 </script>
 <table id="role_table"></table>

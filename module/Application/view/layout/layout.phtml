@@ -1,4 +1,6 @@
 <?php
+use Zend\Navigation\Navigation;
+
 use Nette\Diagnostics\Debugger;
 Debugger::enable();
 ?>
@@ -40,6 +42,9 @@ Debugger::enable();
 							$user = $auth->getStorage()->read();
 							if(!empty($user->role_id)) {//if user is logged in, set role
 								$navigation->setRole((string)$user->role_id);
+							} else {
+								$role_table = new Application\Model\RoleTable($this->layout()->adapter);
+								$navigation->setRole($role_table->getDefault()->id);
 							}
 							$navigation->menu()->setPartial("layout/menu");
 							echo $navigation()->menu()->render(); 

@@ -2,6 +2,8 @@
 
 namespace Application\Controller;
 
+use Application\Model\Role;
+
 use Nette\Application\Request;
 
 use Zend\Mvc\Controller\AbstractActionController;
@@ -47,6 +49,8 @@ class AdminController extends AbstractActionController
 	{
 		if(!empty($this->user)) {
 			$role_id = $this->user->role_id;
+		} else {
+			$role_id = $this->role_table->getDefault()->id;
 		}
 		if(empty($role_id) || !$this->role_table->isAllowed($role_id, "mvc:admin")) {
 			return false;
@@ -226,20 +230,30 @@ class AdminController extends AbstractActionController
 		if(!$permission) {
 			return $this->response->setStatusCode(403);//forbidden
 		}
-		if($this->getRequest()->getPost('oper') == "edit") {
+		$post = $this->getRequest()->getPost();
+		if($post["oper"] == "add") {
+			$row = new Role();
+			$row->name = $post["name"];
+			$row->default = $post["default"];
+			$row->admin = $post["admin"];
+			$this->role_table->save($row);
+			return new JsonModel(array("success"));
+		}elseif($post["oper"] == "edit") {
 			$row = $this->role_table->getById($this->getRequest()->getPost('id'));
 			$properties = array(
 					'name',
 					'default',
 					'admin',
 			);
-			$post = $this->getRequest()->getPost();
 			foreach($properties as $p) {
 				if(isset($post[$p])) {
 					$row->$p = $post[$p];
 				}
 			}
 			$this->role_table->save($row);
+			return new JsonModel(array("success"));
+		}elseif($post["oper"] == "del") {
+			$row = $this->role_table->deleteById($post["id"]);
 			return new JsonModel(array("success"));
 		}
 		return $this->response->setStatusCode(503);//service unavailable

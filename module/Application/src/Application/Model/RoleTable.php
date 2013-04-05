@@ -84,11 +84,6 @@ class RoleTable extends AbstractTableGateway
         $data['name'] = $object->name;
 		
         $id = (int) $object->id;
-        
-        //set all default values to 0 except the new one
-        if($object->default == 1) {
-        	$this->setDefault($id);
-        }
 
         if ($id == 0) {
             $insert = $this->insert($data);
