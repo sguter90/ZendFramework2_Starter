@@ -9,4 +9,6 @@ nbproject
 composer.lock
 composer.json
 config/ldap-config.ini
+public/img/favicon_apo.png
+public/img/navigation_logo.png
 
