@@ -1,0 +1,13 @@
+[production]
+
+ldap.log_path = ;/tmp/ldap.log
+
+; Typical options for OpenLDAP
+ldap.server1.host = 192.168.1.x
+ldap.server1.accountDomainName = example.com
+ldap.server1.accountDomainNameShort = example.com
+ldap.server1.accountCanonicalForm = 3
+ldap.server1.username = "CN=user,DC=example,DC=com"
+ldap.server1.password = xxx
+ldap.server1.baseDn = "DC=example,DC=com"
+ldap.server1.bindRequiresDn = true

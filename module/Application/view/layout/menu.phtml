@@ -1,0 +1,46 @@
+<?php 
+if(!function_exists("getMenuItemsOfDepth")) {
+	function getMenuItemsOfDepth($navigation, $container, $depth, $cur_route) {
+		$it = new RecursiveIteratorIterator($container, RecursiveIteratorIterator::SELF_FIRST);
+		$html = "";
+		foreach ($it as $page) {
+			if($page->isVisible() && $it->getDepth() == $depth) {
+				if($page->isActive(true) || str_replace("/index.php", "", $page->getHref()) == $cur_route) { 
+					$active = "active";
+				} else {
+					$active = "";
+				}
+				$route = explode("/", $page->route);
+				if($navigation->accept($page)) {//check if user is allowed for this resource
+					//show only items of top or if the parent page is active
+					if($it->getDepth() == 0 || ($it->getDepth() > 0 && $page->getParent()->isActive())) {
+					$html .= "<li class='".$active."'>".
+							"<a href='".$page->getHref()."'><span>".$page."</span></a>".
+							"</li>\n";
+					}
+				}
+			}
+		}
+		return $html;
+	}
+}
+//init variables here cause there is no known way to get this into a layout variable in Module.php
+$route_match = $this->layout()->sm->get('Application')->getMvcEvent()->getRouteMatch();
+if($route_match) {
+	$route = "/".$route_match->getMatchedRouteName()."/".$route_match->getParam("action");
+}else {
+	$route = "/application";
+}
+?>
+
+<div id="navigation">
+	<ul class="menu">
+		<li><a href="/"><?php echo $this->layout()->option_table->getValue("app_name") ?></a></li>
+		<?php echo getMenuItemsOfDepth($this->navigation(),$this->container, 0, $route)?>
+	</ul>
+</div><!-- /navigation -->
+<div id="subnavigation">
+	<ul class="submenu">
+		<?php echo getMenuItemsOfDepth($this->navigation(), $this->container, 1, $route)?>
+	</ul>
+</div><!-- /subnavigation -->

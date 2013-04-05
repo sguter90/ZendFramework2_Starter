@@ -1,0 +1,30 @@
+<script type="text/javascript">
+$(document).ready(function() {
+$("#option_table").jqGrid({
+   	url:'/index.php/application/admin/optionData',
+	datatype: "json",
+   	colNames:['Name','Wert','Beschreibung'],
+   	colModel:[
+   		{name:'name', index:'name', search: true, editable: false, sortable: true},
+   		{name:'value', index: 'value', search: true, editable: true, sortable: true},
+   		{name:'description', index: 'description', search: true, editable: false, sortable: true},
+   	],
+   	rowNum:10,
+   	rowList:[10,20,30],
+   	pager: '#option_pager',
+   	sortname: 'name',
+    sortorder: "asc",
+    viewrecords: false,
+    caption:"Optionen",
+    cellEdit: true,
+    cellurl: '/index.php/application/admin/updateOption',
+    editurl: '/index.php/application/admin/updateOption',
+    autowidth: true	,
+    height: '100%',
+});
+$("#option_table").filterToolbar();
+$("#option_table").jqGrid('navGrid','#option_pager',{edit:false,add:false,del:false,search:false});
+});
+</script>
+<table id="option_table"></table>
+<div id="option_pager"></div>

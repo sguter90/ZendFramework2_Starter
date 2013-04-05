@@ -1,0 +1,23 @@
+<script type="text/javascript">
+function login() {
+	$.ajax({
+	  type: "POST",
+	  url: "/index.php/application/auth/login",
+	  data: $("#login_form").serialize(),
+	  success: function(msg) {
+		msg = msg.message;
+		if(msg == "success") {
+			window.location.href = '/';
+		} else {
+			$().toastmessage('showErrorToast', msg);
+		}
+	  },
+	});
+}
+</script>
+
+<form id="login_form">
+	Username: <input type="text" name="username" onKeydown="javascript: if (event.keyCode==13) login();" /><br />
+	Passwort: <input type="password" name="password" onKeydown="javascript: if (event.keyCode==13) login();" /><br />
+	<input type="button" onclick="login()" value="Login" />
+</form>

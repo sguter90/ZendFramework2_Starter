@@ -1,0 +1,32 @@
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#role_table").jqGrid({
+		url:'/index.php/application/admin/roleData',
+		datatype: "json",
+		colNames:['ID', 'Name', 'Standard', 'Admin'],
+		colModel:[
+		{name:'id', index:'id', hidden: true, width: 10, search: true, editable: false, sortable: true},
+		{name:'name', index: 'name', search: true, editable: true, sortable: true},
+		{name:'default', index: 'default', width: 20, search: false, editable: true, sortable: true},
+		{name:'admin', index: 'admin', width: 20, search: true, editable: true, sortable: true, stype:"select", edittype:"select", formatter:"select", editoptions: {value:"1:Ja;0:Nein"}, searchoptions: { value:":Alle;1:Ja;0:Nein" }},
+		],
+		rowNum:10,
+		rowList:[10,20,30],
+		pager: '#role_pager',
+		sortname: 'name',
+		sortorder: "asc",
+		viewrecords: false,
+		caption: "Rollen",
+		cellEdit: true,
+		cellurl: '/index.php/application/admin/updateRole',
+		editurl: '/index.php/application/admin/updateRole',
+		autowidth: true	,
+		height: '100%',
+		afterSaveCell: function() {$("#role_table").trigger("reloadGrid");},
+	});
+	$("#role_table").filterToolbar();
+	$("#role_table").jqGrid('navGrid','#role_pager',{edit:false,add:false,del:false,search:false});
+});
+</script>
+<table id="role_table"></table>
+<div id="role_pager"></div>

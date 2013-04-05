@@ -1,0 +1,124 @@
+body {
+	background-color: #f0f0f0;
+	font-family:Verdana,'Lucida Sans Unicode',sans-serif;
+	margin: 20px;
+}
+
+img{
+	border:none;
+}
+
+#body_wrapper {
+	box-shadow: 0 0 5px #888;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+}
+#header{
+	height:81px; 
+}
+
+#navigation, #subnavigation {
+	clear: both;
+}
+
+.menu, .submenu{
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+}
+
+.menu li{
+	float: left;
+	position: relative;	
+    display: block;
+    height: 50px;
+    overflow: hidden;
+    background-image: url(../img/bg_balken_gruen.png);
+    background-repeat: repeat;
+    border-right: 1px solid white;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.menu li:hover{
+	opacity: 0.8;
+}
+
+.menu li.active {
+	background-image: url(../img/bg_balken_gruen_selected.png);
+	background-repeat: repeat;
+}
+.menu li:first-child{
+	opacity: 1;
+	border-top-left-radius: 10px;
+} 
+
+.menu li:last-child{
+	border-right: 0;
+	border-top-right-radius: 10px;
+} 
+
+.menu li a{
+	color: #ffffff;
+	text-decoration: none;
+    font-size: 30px;
+    display: inline-block;
+    padding-top: 15px;
+}
+
+.menu li:first-child a {
+	/*padding-top: 0px;*/
+	font-family: 'Merriweather', serif;
+}
+
+.menu li.active a {
+	color: #425B54;
+}
+
+.submenu {
+	border-bottom: 1px solid #425B54;
+	height: 30px;
+}
+.submenu li{
+	float: left;
+	position: relative;	
+    display: block;
+    height: 20px;
+    overflow: hidden;
+    padding: 4px;
+    background-color: #657973;
+    border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+	margin-left: 4px;
+	margin-top: 1px;
+	border: 1px solid #425B54;
+}
+
+.submenu li a{
+	color: #ffffff;
+	text-decoration: none;
+    font-size: 12px
+    display: inline-block;
+}
+
+.submenu li.active, .submenu li:hover{
+	background-color: #ffffff;
+	border-bottom: 1px solid #ffffff;
+}
+
+.submenu li.active a, .submenu li:hover a {
+	color: #425B54;
+}
+
+#content{
+	padding: 20px;
+	background-color: #ffffff;
+}
+
+#footer{
+	text-align: center;
+	color: #708B8B;
+	height:50px; 
+	margin-top: 30px;
+}

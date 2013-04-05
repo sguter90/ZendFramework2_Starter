@@ -1,0 +1,32 @@
+<script type="text/javascript">
+$(document).ready(function() {
+$("#user_table").jqGrid({
+   	url:'/index.php/application/admin/userData',
+	datatype: "json",
+   	colNames:['ID', 'Username', 'Vorname', 'Nachname', 'Rolle'],
+   	colModel:[
+   		{name:'id', index:'id', hidden: true, search: true, editable: false, sortable: true},
+   		{name:'username', index: 'username', search: true, editable: false, sortable: true},
+   		{name:'firstname', index: 'firstname', search: true, editable: true, sortable: true},
+   		{name:'lastname', index: 'lastname', search: true, editable: true, sortable: true},
+   		{name:'role_id', index: 'role_id', search: true, editable: true, sortable: true, stype: 'select', formatter:'select', edittype: 'select', editoptions: { value: "<?php echo $this->roles ?>" } },
+   	],
+   	rowNum:10,
+   	rowList:[10,20,30],
+   	pager: '#user_pager',
+   	sortname: 'username',
+    sortorder: "asc",
+    viewrecords: false,
+    caption: "User",
+    cellEdit: true,
+    cellurl: '/index.php/application/admin/updateUser',
+    editurl: '/index.php/application/admin/updateUser',
+    autowidth: true	,
+    height: '100%',
+});
+$("#user_table").filterToolbar();
+$("#user_table").jqGrid('navGrid','#user_pager',{edit:false,add:false,del:false,search:false});
+});
+</script>
+<table id="user_table"></table>
+<div id="user_pager"></div>

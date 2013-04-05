@@ -1,0 +1,59 @@
+<?php
+use Nette\Diagnostics\Debugger;
+Debugger::enable();
+?>
+
+<?php echo $this->doctype(); ?>
+
+<html lang="de">
+    <head>
+        <meta charset="utf-8">
+        <?php echo $this->headTitle($this->option_table->getValue("app_name")) ?>
+
+        <?php echo $this->headMeta()->appendName('viewport', 'width=device-width, initial-scale=1.0') ?>
+
+        <!-- Styles -->
+        <?php echo $this->headLink(array('rel' => 'shortcut icon', 'type' => 'image/x-icon', 'href' => $this->basePath() . '/img/favicon.png'))
+                        ->appendStylesheet($this->basePath() . '/css/bootstrap.min.css')
+						->appendStylesheet($this->basePath() . '/css/bootstrap-responsive.min.css')
+        				->appendStylesheet($this->basePath() . '/js/jquery-toast/jquery.toastmessage.css')
+        				->appendStylesheet($this->basePath() . '/js/jquery-ui/css/ui-lightness/jquery-ui-1.9.2.custom.min.css')
+        				->appendStylesheet($this->basePath() . '/js/jqgrid/css/ui.jqgrid.css')
+        				->appendStylesheet("http://fonts.googleapis.com/css?family=Merriweather:700")
+        				->appendStylesheet($this->basePath() . '/css/style.css'); ?>
+
+        <!-- Scripts -->
+        <?php echo $this->headScript()->prependFile($this->basePath() . '/js/html5.js', 'text/javascript', array('conditional' => 'lt IE 9',))
+        				->prependFile($this->basePath() . '/js/jquery-toast/jquery.toastmessage.js')
+        				->prependFile($this->basePath() . '/js/jqgrid/js/jquery.jqGrid.min.js')
+        				->prependFile($this->basePath() . '/js/jqgrid/js/i18n/grid.locale-de.js')
+						->prependFile($this->basePath() . '/js/bootstrap.min.js')
+						->prependFile($this->basePath() . '/js/jquery-ui/js/jquery-ui-1.9.2.custom.min.js')
+						->prependFile($this->basePath() . '/js/jquery.min.js'); ?>
+    </head>
+    <body>
+    	<div id="body_wrapper">
+	    	<div id="header">
+					<?php 	$navigation = $this->navigation('Navigation');
+							$auth = new \Zend\Authentication\AuthenticationService();
+							$navigation->setUseAcl();
+							$user = $auth->getStorage()->read();
+							if(!empty($user->role_id)) {//if user is logged in, set role
+								$navigation->setRole((string)$user->role_id);
+							}
+							$navigation->menu()->setPartial("layout/menu");
+							echo $navigation()->menu()->render(); 
+					?>
+			</div><!-- /header -->
+	
+	        <div id="content">
+	            <?php echo $this->content; ?>
+	        </div> <!-- /content -->
+        </div><!-- /body_wrapper -->
+		<div id="footer">
+	        <?php echo $this->option_table->getValue("footer_text") ?>
+	    </div><!-- /footer -->
+
+        <?php echo $this->inlineScript() ?>
+    </body>
+</html>
