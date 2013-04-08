@@ -5,16 +5,17 @@ if(!function_exists("getMenuItemsOfDepth")) {
 		$html = "";
 		foreach ($it as $page) {
 			if($page->isVisible() && $it->getDepth() == $depth) {
-				if($page->isActive(true) || str_replace("/index.php", "", $page->getHref()) == $cur_route) { 
+				$route_check = str_replace("/index.php", "", $page->getHref());
+				if($page->isActive(true) || $route_check == $cur_route || $route_check."/index" == $cur_route) { 
 					$active = "active";
+					$page->setActive(true);
 				} else {
 					$active = "";
 				}
-				$route = explode("/", $page->route);
 				if($navigation->accept($page)) {//check if user is allowed for this resource
 					//show only items of top or if the parent page is active
 					if($it->getDepth() == 0 || ($it->getDepth() > 0 && $page->getParent()->isActive())) {
-					$html .= "<li class='".$active."'>".
+						$html .= "<li class='".$active."'>".
 							"<a href='".$page->getHref()."'><span>".$page."</span></a>".
 							"</li>\n";
 					}
@@ -27,7 +28,11 @@ if(!function_exists("getMenuItemsOfDepth")) {
 //init variables here cause there is no known way to get this into a layout variable in Module.php
 $route_match = $this->layout()->sm->get('Application')->getMvcEvent()->getRouteMatch();
 if($route_match) {
-	$route = "/".$route_match->getMatchedRouteName()."/".$route_match->getParam("action");
+	$action = $route_match->getParam("action");
+	$route = "/".$route_match->getMatchedRouteName();
+	if(!empty($action)) {
+		$route .= "/".$action;
+	}
 }else {
 	$route = "/application";
 }
