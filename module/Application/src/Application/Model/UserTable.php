@@ -47,9 +47,6 @@ class UserTable extends AbstractTableGateway
     		"username" => $username
     	));
     	$row = $rowset->current();
-    	if (!$row) {
-    		throw new \Exception("Could not find row $id");
-    	}
     
     	return $row;
     }
@@ -89,6 +86,9 @@ class UserTable extends AbstractTableGateway
     }
     
     public function existsByUsername($username) {
+    	if(empty($username)) {
+    		return false;
+    	}
 		$row = $this->getByUsername($username);
     	if (!$row) {
     		return false;

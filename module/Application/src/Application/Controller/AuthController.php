@@ -13,7 +13,8 @@ use Zend\Mail\Message;
 use Zend\Mail\Transport\Sendmail as SendmailTransport;
 #auth
 use Zend\Authentication\AuthenticationService;
-use Zend\Authentication\Adapter\Ldap as AuthAdapter;
+use Zend\Authentication\Adapter\Ldap as AuthAdapterLdap;
+use Zend\Authentication\Adapter\DbTable as AuthAdapterDb;
 use Zend\Config\Reader\Ini as ConfigReader;
 use Zend\Config\Config;
 use Zend\Log\Logger;
@@ -44,78 +45,68 @@ class AuthController extends AbstractActionController
 
 	public function loginAction()
 	{
-		$username = $this->getRequest()->getPost('username');
-		$password = $this->getRequest()->getPost('password');
-
-		$configReader = new ConfigReader();
-		$configData = $configReader->fromFile('./config/ldap-config.ini');
-		$config = new Config($configData, true);
-
-		$log_path = $config->production->ldap->log_path;
-		$options = $config->production->ldap->toArray();
-		unset($options['log_path']);
-
-		$adapter = new AuthAdapter($options,
-				                   $username,
-				                   $password);
-		
-		$result = $this->auth->authenticate($adapter);
-		$messages = $result->getMessages();
-
-		if ($log_path) {
-			$logger = new Logger;
-			$writer = new LogWriter($log_path);
-
-			$logger->addWriter($writer);
-
-			$filter = new LogFilter(Logger::DEBUG);
-			$writer->addFilter($filter);
-
-			foreach ($messages as $i => $message) {
-				if ($i-- > 1) { // $messages[2] and up are log messages
-				    $message = str_replace("\n", "\n  ", $message);
-				    $logger->debug("Ldap: $i: $message");
+		try {
+			$dbadapter = $this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
+			$user_table = new UserTable($dbadapter);
+			
+			$username = $this->getRequest()->getPost('username');
+			$password = $this->getRequest()->getPost('password');
+			
+			if($user_table->existsByUsername($username)) {
+				$user = $user_table->getByUsername($username);
+			}
+	
+			if(isset($user) && $user->type == "ldap") {
+				#if ldap config exists init ldap-adapter
+				if(file_exists('./config/ldap-config.ini')) {
+					$configReader = new ConfigReader();
+					$configData = $configReader->fromFile('./config/ldap-config.ini');
+					$config = new Config($configData, true);
+					$log_path = $config->production->ldap->log_path;
+					$options = $config->production->ldap->toArray();
+					unset($options['log_path']);
+					$adapter = new AuthAdapterLdap($options, $username, $password);
+				} else {
+					throw new \Exception("User ".$user->username." wants to login with LDAP, but config/ldap-config.ini doesn't exist or isn't readable!");
+				}
+			} else {
+				//login with db
+				$adapter = new AuthAdapterDb($dbadapter, 'user', 'username', 'password', 'md5(?)');
+				$adapter
+				->setIdentity($username)
+				->setCredential($password);
+			}
+			
+			$result = $this->auth->authenticate($adapter);
+			$messages = $result->getMessages();
+	
+			if (isset($log_path)) {
+				$logger = new Logger;
+				$writer = new LogWriter($log_path);
+	
+				$logger->addWriter($writer);
+	
+				$filter = new LogFilter(Logger::DEBUG);
+				$writer->addFilter($filter);
+	
+				foreach ($messages as $i => $message) {
+					if ($i-- > 1) { // $messages[2] and up are log messages
+					    $message = str_replace("\n", "\n  ", $message);
+					    $logger->debug("Auth: $i: $message");
+					}
 				}
 			}
+		}catch(\Exception $e) {
+			$messages[0] = "ERROR: ".$e->getMessage();
 		}
-		if(empty($messages[0])) {//successfull ldap login
+		
+		if(empty($messages[0]) || $messages[0] == "Authentication successful.") {//successfull ldap login
 			$return = "success";
-			$adapter = $this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
-			$user_table = new UserTable($adapter);
 			
-			if(!$user_table->existsByUsername($username)) {//if no user exists in db
-				
-				$user = new User();
-				$user->exchangeArray(array(
-					"username" => $username,
-					"type" => "ldap"
-				));
-				$user->save($adapter);//save new user to db
-				$this->auth->clearIdentity();//delete session
-				$return = "Der Admin muss noch eine Rolle zuweisen, damit Sie sich anmelden k&ouml;nnen!";
-				
-				//get options from database
-				$option_table = new OptionTable($adapter);
-				$admin = $option_table->getValue("admin_notify_email");
-				$system = $option_table->getValue("system_email");
-				$app_name = $option_table->getValue("app_name");
-
-				//send message to admin
-				$message = new Message();
-				$message->addTo($admin)
-				->addFrom($system)
-				->setSubject($app_name.': User "'.$username.'" möchte sich anmelden')
-				->setBody('Der User "'.$username.'" hat versucht sich bei '.$app_name.' anzumelden. Momentan hat er keine erweiterten Rechte. 
-					Um ihm mehr Rechte zu geben, weisen Sie ihm eine Rolle zu!');
-				
-				$transport = new SendmailTransport();
-				$transport->send($message);
-				
-			}elseif(!$user_table->hasRoleByUsername($username)) {//if user got no role
+			if(isset($user) && !$user_table->hasRoleByUsername($username)) {//if user got no role
 				$this->auth->clearIdentity();
 				$return = "Der Admin muss noch eine Rolle zuweisen, damit Sie sich anmelden k&ouml;nnen!";
 			}else {//if everything ok, write user information in storage
-				$user = $user_table->getByUsername($username);
 				$this->auth->getStorage()->write($user);
 			}
 		} else {
@@ -125,7 +116,11 @@ class AuthController extends AbstractActionController
 				case "A username is required": 		$return = "Bitte geben Sie einen Benutzernamen ein!";
 													break;
 				case "An unexpected failure occurred": 	$return = "Ein unerwarteter Fehler ist aufgetreten!";
-													break;								
+													break;	
+				case "A record with the supplied identity could not be found.": $return = "Benutzername oder Passwort stimmen nicht überein!";
+													break;	
+				case "ERROR: A value for the identity was not provided prior to authentication with DbTable.": $return = "Bitte gib einen Benutzernamen ein!";
+													break;						
 				default: $return = $messages[0];
 			}
 		}
