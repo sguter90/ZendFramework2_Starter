@@ -209,16 +209,18 @@ class AdminController extends AbstractActionController
 		if(!$permission) {
 			return $this->response->setStatusCode(403);//forbidden
 		}
-		$json = $this->role_table->getAsJson(array(
+		$role = new Role();
+		$role_columns = $role->getArrayCopy();
+		$json_array = array(
 				'page'        => $this->request->getQuery()->page,
 				'sidx'        => $this->request->getQuery()->sidx,
 				'sord'        => $this->request->getQuery()->sord,
 				'rownumber'   => $this->request->getQuery()->rows,
-				'id'		  => "%".$this->request->getQuery()->id."%",
-				'name'		  => "%".$this->request->getQuery()->name."%",
-				'default'	  => "%".$this->request->getQuery()->default."%",
-				'admin'		  => "%".$this->request->getQuery()->admin."%",
-		));
+		);
+		foreach($role_columns as $column => $dummy) {
+			$json_array[$column] = "%".$this->request->getQuery()->$column."%";
+		}
+		$json = $this->role_table->getAsJson($json_array);
 	
 		return new JsonModel($json);
 	}

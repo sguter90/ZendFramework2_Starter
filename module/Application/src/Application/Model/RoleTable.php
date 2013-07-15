@@ -35,14 +35,12 @@ class RoleTable extends AbstractTableGateway
     	$resources = array_keys($role->getArrayCopy());
     	$not_resources = array("id", "name", "default");
     	$this->resources = array_diff($resources, $not_resources);
-    	$i = 0;
     	$roles = $this->fetchAll();//get all roles from db
     	foreach($roles as $role) {
     		$this->acl->addRole(new GenericRole($role->id));//add role to acl
     		foreach($this->resources as $resource) {
-    			if($i == 0) {//add resource on first run
+    			if(!$this->acl->hasResource('mvc:'.$resource)) {//add resource on first run
     				$this->acl->addResource('mvc:'.$resource);
-    				$i++;
     			}
     			
     			if($role->$resource == 1) {
@@ -144,16 +142,17 @@ class RoleTable extends AbstractTableGateway
     
     public function getAsJson($data)
     {
+    	$role = new Role();
+    	$role_columns = $role->getArrayCopy();
     	$sql = new Sql($this->adapter);
     	$select = $sql->select();
     	$select->from('role');
-    	$where = array(
-    			(($data["id"] != '%%') ? "id LIKE '".$data["id"]."'" : ""),
-    			(($data["name"] != '%%') ? "name LIKE '".$data["name"]."'" : ""),
-    			(($data["default"] != '%%') ? "default LIKE '".$data["default"]."'" : ""),
-    			(($data["admin"] != '%%') ? "admin LIKE '".$data["admin"]."'" : ""),
-    	);
-    	$where = array_diff($where, array(''));//remove all empty values
+    	$where = array();
+    	foreach($role_columns as $column => $dummy) {
+    		if($data[$column] != '%%') {
+    			$where[] = $column . " LIKE '" . $data[$column] . "'";
+    		}
+    	}
     	$select->where($where);
     
     	$total_statement = $sql->prepareStatementForSqlObject($select);
@@ -175,15 +174,15 @@ class RoleTable extends AbstractTableGateway
     			"rows"	=>  array(),
     	);
     	foreach($results as $row) {
+    		$values = array();
+    		foreach($role_columns as $column => $dummy) {
+    			$values[] = $row->$column;
+    		}
+    		unset($values[0]);//remove id
     		$return["rows"][] = array(
     				"id"	=>	$row->id,
-    				"cell"	=> 	array(
-    						$row->id,
-    						$row->name,
-    						$row->default,
-    						$row->admin,
-    				),
-    		);
+    				"cell"	=> 	$values
+    			);
     	}
     	return $return;
     }
